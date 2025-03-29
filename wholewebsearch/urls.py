@@ -19,6 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     # path("search/", include("search.urls")),
-    path('search/', include('rebuild_search.urls')),
+    path('search/', include('search.urls')),
     path("user/", include("user.urls"))
 ]

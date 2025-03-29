@@ -4,9 +4,10 @@
 from typing import List, Tuple
 
 from bs4 import BeautifulSoup
+from search.models import Category, Website
 from search.NewsGrasp.Graps import Grasp
 from search.NewsGrasp.settings import URLS
-from search.mysql_connection.sql_wrench import mysql
+
 
 class HotpointsNewGrasp(Grasp):
     def __init__(self):
@@ -35,36 +36,21 @@ class HotpointsNewGrasp(Grasp):
         # (official_name, url, title)
         if url_and_title.__len__() == 0:
             return
-
-        cursor = mysql.cursor()
-        values = ""
-        for official_name, url, _ in url_and_title:
-            affect_rows = cursor.execute("SELECT id FROM url WHERE url = %s", (url,))
-
+        
+        for _, address, title in url_and_title:
+            affect_rows = Website.objects.filter(address=address).values_list('id', flat=True).__len__()
             if affect_rows != 0:
                 continue
+            website = Website()
+            website.address = address
+            website.title = title
+            website.categories = Category(pk=1)
 
-            values += "('" + official_name + "','" + url + "', NULL),"
+            # 由于是 ‘热点关键词’ 所以这两个都没有
+            website.content = ''
+            website.description = ''
 
-        # 去除已经添加进去的
-        if values == "":
-            return
-
-        # 填入URL表
-        cursor.execute(f"INSERT INTO url(official_name, url, words_id) VALUES {values[: -1]}")
-        mysql.commit()
-
-        # 填入到text表
-        for official_name, url, title in url_and_title:
-            affect_rows = cursor.execute("SELECT id FROM text WHERE title=%s", title)
-            if affect_rows != 0:
-                continue
-
-            cursor.execute("SELECT id FROM url WHERE url=%s", url)
-            url_id = cursor.fetchone()[0]  # 可能空指针异常
-            cursor.execute(f"INSERT INTO text(url_id, words_id, title) VALUE ({url_id}, NULL, '{title}')")
-            mysql.commit()
-        cursor.close()
+            website.save()
 
     @staticmethod
     def sina_grasp(html: str) -> None:

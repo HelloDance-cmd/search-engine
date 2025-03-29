@@ -2,10 +2,9 @@ from typing import List, Tuple
 from urllib.parse import quote
 from bs4 import BeautifulSoup
 
-from .Graps import Grasp
-from rebuild_search.mysql_connection import sql
+from search.models import Category, Website
 
-mysql = sql.get_conn()
+from .Graps import Grasp
 
 class GraspByKeyword(Grasp):
     def __init__(self, word: str):
@@ -53,14 +52,14 @@ class GraspByKeyword(Grasp):
     def add_to_mysql(page_info_wrapper: List[Tuple[str, str, str, str]], k):
         if not page_info_wrapper:
             return
-
-        cursor = mysql.cursor()
-        
-        for _, url, title, text in page_info_wrapper:
-            sql_sentence = "INSERT INTO `website`(`title`, `url`, `description`, `text`) VALUES ('%s', '%s', '%s', '%s')" % (title, url, text[: 50], text)
-            cursor.execute(sql_sentence)
-            mysql.commit()
-        cursor.close()
+        for _, address, title, text in page_info_wrapper:
+            website = Website()
+            website.title = title
+            website.address = address
+            website.description = text[:50]
+            website.content = text
+            website.categories = Category(pk=2)
+            website.save()
 
     @staticmethod
     def sina_parse(html: str):
