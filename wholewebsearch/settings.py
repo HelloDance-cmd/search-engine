@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'search',
+    'user',
     "corsheaders"
 ]
 
@@ -43,7 +44,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -58,6 +59,8 @@ CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = ('*')
 
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
+SESSION_COOKIE_SECURE = True
 
 TEMPLATES = [
     {
@@ -84,9 +87,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         "NAME": "search_engine_django",
-        "HOST": "localhost",
+        "HOST": "117.72.37.186",
         "USER": "root",
-        "PASSWORD": "111111",
+        "PASSWORD": "wu272515.",
         "PORT": "3306"
     }
 }

@@ -5,8 +5,8 @@ from typing import List, Tuple
 
 from bs4 import BeautifulSoup
 from search.models import Category, Website
-from search.NewsGrasp.Graps import Grasp
-from search.NewsGrasp.settings import URLS
+from .Graps import Grasp
+from .settings import URLS
 
 
 class HotpointsNewGrasp(Grasp):

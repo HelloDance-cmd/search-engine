@@ -1,3 +1,4 @@
+import time
 from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
 from django.db.models import Q
 
@@ -8,8 +9,7 @@ import threading
 
 def search_view(request: HttpRequest):
     words = request.GET.get('words')
-    username = request.GET.get("username")
-
+    username = request.headers.get("username")
     if username is None:
         return HttpResponseBadRequest("Username是必须的")
 
@@ -17,6 +17,10 @@ def search_view(request: HttpRequest):
         return HttpResponseBadRequest("请求参数可能有问题，请检查")
     
     getDateInGrasp(words)
+    # threading.Thread(target=getDateInGrasp, args=(words,))
+    # 在3s内能爬取多少算多少
+    # duration = 10
+    # time.sleep(duration)
 
     match_title_results = Website.objects.filter(title__icontains=words).all()
     queryset = [{
@@ -30,16 +34,21 @@ def search_view(request: HttpRequest):
     
     def add_to_website_tb():
         match_ids = Website.objects.filter(title__icontains=words).values_list('id', flat=True)
-        related_title = [id for id in match_ids]
+        website_ids = [id for id in match_ids]
         user_id = User.objects.filter(name=username).first()
 
         if user_id is None:
             return
         
         unamed_user = User(pk=user_id)
-        websites = Website.objects.filter(pk__in=related_title).all()
-        unamed_user.visited_website.set(websites)
-        unamed_user.save()
+        for website_id in website_ids:
+            website = Website.objects.filter(pk=website_id).first()
+            
+            if website is None:
+                continue
+
+            unamed_user.visited_website.add(website)
+        # unamed_user.save()
 
 
     threading.Thread(target=add_to_website_tb).start()

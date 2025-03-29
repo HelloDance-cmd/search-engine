@@ -18,8 +18,9 @@ def user_login_view(request: HttpRequest):
   Returns:
       JsonResponse: 正确与否
   """
+  # request.POST.get()
   json_data = json.loads(request.body)
-  # userName = request.POST.get('username')
+  # user_name = request.POST.get('username')
   # password = request.POST.get('password')
 
   user_name = json_data["username"]
@@ -53,7 +54,7 @@ def user_register_view(request: HttpRequest):
   json_data = json.loads(request.body)
   # userName = request.POST.get('username')
   # password = request.POST.get('password')
-
+  print(json_data)
   user_name = str(json_data["username"])
   password = str(json_data['password'])
   email = str(json_data['email'])
