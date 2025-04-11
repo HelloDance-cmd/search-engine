@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'search',
     'user',
+    'modules',
     "corsheaders"
 ]
 
@@ -44,20 +45,18 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'wholewebsearch.urls'
 
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_HEADERS = ('*')
+CORS_ALLOW_HEADERS = ('*',)
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
 SESSION_COOKIE_SECURE = True
@@ -65,7 +64,9 @@ SESSION_COOKIE_SECURE = True
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -87,9 +88,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         "NAME": "search_engine_django",
-        "HOST": "117.72.37.186",
+        # "HOST": "117.72.37.186",
+        "HOST": "localhost",
         "USER": "root",
-        "PASSWORD": "wu272515.",
+        # "PASSWORD": "wu272515.",
+        "PASSWORD": "111111",
         "PORT": "3306"
     }
 }

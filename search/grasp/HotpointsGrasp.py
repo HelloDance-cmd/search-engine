@@ -4,7 +4,7 @@
 from typing import List, Tuple
 
 from bs4 import BeautifulSoup
-from search.models import Category, Website
+from modules.models import Category, Website
 from .Graps import Grasp
 from .settings import URLS
 

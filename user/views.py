@@ -1,30 +1,28 @@
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest, JsonResponse, HttpResponseBadRequest
 
 import hashlib
 import json
 
-from search.models import User
+from modules.models import User
 
 def userPermissionView(request: HttpRequest):
   ...
 
 
 def user_login_view(request: HttpRequest):
-  """验证用户登录是否合法
+  if request.method != 'POST':
+    return HttpResponseBadRequest('请求格式必须是POST')
 
-  Args:
-      request (HttpRequest): request请求
+  data = json.loads(request.body)
+  user_name = data['username'].__str__()
+  password = data['password'].__str__()
 
-  Returns:
-      JsonResponse: 正确与否
-  """
-  # request.POST.get()
-  json_data = json.loads(request.body)
-  # user_name = request.POST.get('username')
-  # password = request.POST.get('password')
+  if not user_name or not password:
+    return HttpResponseBadRequest('用户名密码必须同时存在')
 
-  user_name = json_data["username"]
-  password = str(json_data['password'])
+  # json_data = json.loads(request.body)
+  # user_name = json_data["username"]
+  # password = str(json_data['password'])
 
   # md5加密
   encrypt_password = hashlib.md5(password.encode('utf-8')).hexdigest()
@@ -43,34 +41,30 @@ def user_login_view(request: HttpRequest):
 
 
 def user_register_view(request: HttpRequest):
-  """验证用户注册是否合法，如果合法则对用户进行注册
+  if request.method != 'POST':
+    return JsonResponse({
+      "message": '请求格式必须是POST'
+    })
 
-  Args:
-      request (HttpRequest): request请求
+  data = json.loads(request.body)
+  user_name = data['username'].__str__()
+  password = data['password'].__str__()
+  data.setdefault('email', 'default@email')
+  email = data['email'].__str__()
 
-  Returns:
-      JsonResponse: 正确与否
-  """
-  json_data = json.loads(request.body)
-  # userName = request.POST.get('username')
-  # password = request.POST.get('password')
-  print(json_data)
-  user_name = str(json_data["username"])
-  password = str(json_data['password'])
-  email = str(json_data['email'])
-
-  # userName = request.POST.get('username')
-  # password = request.POST.get('password')
-  
+  # json_data = json.loads(request.body)
+  # user_name = str(json_data["username"])
+  # password = str(json_data['password'])
+  # email = str(json_data['email'])
   # md5加密
-  encrypt_password = hashlib.md5(password.encode('utf-8')).hexdigest()
-  user = User.objects.filter(name=user_name).first()  
+  user = User.objects.filter(name=user_name).first()
 
   if user is not None:
     return JsonResponse({
       "message": '该用户已经存在，无法注册'
     })
 
+  encrypt_password = hashlib.md5(password.encode('utf-8')).hexdigest()
   new_user_account = User()
   new_user_account.email = None if email == 'None' else email
   new_user_account.name = user_name
@@ -79,5 +73,5 @@ def user_register_view(request: HttpRequest):
   new_user_account.save()
 
   return JsonResponse({
-    'message': 'True'
+    'message': "True"
   })

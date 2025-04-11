@@ -1,4 +1,4 @@
-from .KeywordGrasp import GraspByKeyword
+from .KeywordGrasp import GraspByKeywordNews
 
-def getDateInGrasp(word: str) -> None:
-    GraspByKeyword(word).start()
+def getDateInGrasp(word: str, user_id: int) -> None:
+    GraspByKeywordNews(word, user_id).start()
