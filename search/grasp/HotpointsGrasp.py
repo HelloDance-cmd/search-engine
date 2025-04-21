@@ -8,14 +8,16 @@ from modules.models import Category, Website
 from .Graps import Grasp
 from .settings import URLS
 
+from modules.Constant import CategoryConstant
 
-class HotpointsNewGrasp(Grasp):
+
+class HotpotsNewGrasp(Grasp):
     def __init__(self):
         super().__init__()
 
         self.urls = URLS.copy()
 
-    def news_hot_points_grasp(self):
+    def start(self):
         """
             爬取热点信息
             存放到数据库中
@@ -25,18 +27,22 @@ class HotpointsNewGrasp(Grasp):
             text = self.grasp()
 
             if url.find("sina") != -1:
-                HotpointsNewGrasp.sina_grasp(text)
+                HotpotsNewGrasp.sina_grasp(text)
             elif url.find("cctv") != -1:
-                HotpointsNewGrasp.cctv_grasp(text)
+                HotpotsNewGrasp.cctv_grasp(text)
             elif url.find("baidu") != -1:
-                HotpointsNewGrasp.baidu_grasp(text)
+                HotpotsNewGrasp.baidu_grasp(text)
 
     @staticmethod
     def add_to_mysql(url_and_title: List[Tuple[str, str, str]]):
-        # (official_name, url, title)
+        c = Category.objects.filter(name=CategoryConstant.HOTSPOT).first()
+        if c is None:
+            c = Category(name=CategoryConstant.HOTSPOT)
+            c.save()
+
         if url_and_title.__len__() == 0:
             return
-        
+
         for _, address, title in url_and_title:
             affect_rows = Website.objects.filter(address=address).values_list('id', flat=True).__len__()
             if affect_rows != 0:
@@ -44,7 +50,7 @@ class HotpointsNewGrasp(Grasp):
             website = Website()
             website.address = address
             website.title = title
-            website.categories = Category(pk=1)
+            website.categories = c
 
             # 由于是 ‘热点关键词’ 所以这两个都没有
             website.content = ''
@@ -66,7 +72,7 @@ class HotpointsNewGrasp(Grasp):
             title = a.string.strip()
             url_and_title.append(("sina", url, title))
 
-        HotpointsNewGrasp.add_to_mysql(url_and_title)
+        HotpotsNewGrasp.add_to_mysql(url_and_title)
 
     @staticmethod
     def cctv_grasp(html: str) -> None:
@@ -82,7 +88,7 @@ class HotpointsNewGrasp(Grasp):
             title = a.string.strip()
             url_and_title.append(("sina", url, title))
 
-        HotpointsNewGrasp.add_to_mysql(url_and_title)
+        HotpotsNewGrasp.add_to_mysql(url_and_title)
 
     @staticmethod
     def baidu_grasp(html: str) -> None:
@@ -102,4 +108,4 @@ class HotpointsNewGrasp(Grasp):
             title = a.string.strip()
             url_and_title.append(("cctv", url, title))
 
-        HotpointsNewGrasp.add_to_mysql(url_and_title)
+        HotpotsNewGrasp.add_to_mysql(url_and_title)

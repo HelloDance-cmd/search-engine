@@ -1,0 +1,1 @@
+from .UserSearchHistory import SearchHistory

@@ -10,7 +10,6 @@ from .Graps import Grasp
 
 
 class GraspByKeywordNews(Grasp):
-    CATEGORY = CategoryConstant.NEWS
 
     def __init__(self, word: str, user_id: int):
         super().__init__()
@@ -27,20 +26,22 @@ class GraspByKeywordNews(Grasp):
         self.user_id = user_id
 
     def start(self):
-        category_is_exist = Category.objects.filter(name=self.CATEGORY).count() >= 1
-        if not category_is_exist:
-            category = Category(name=self.CATEGORY)
+        category_not_exist = Category.objects.filter(name=CategoryConstant.NEWS).count() < 1
+        if category_not_exist:
+            category = Category(name=CategoryConstant.NEWS)
             category.save()
 
         self.grasp_by_keyword(self.word)
 
     def grasp_by_keyword(self, k, page=10):
         task_name_high_priority = 'sina'
-        def remain_task():
-            # 爬取1-page页的数据
-            for cur_page in range(1, page + 1):  # 爬取10页数据
-                for official_name in self.urls:
 
+        def remain_task():
+            print('开始爬取')
+
+            def crawl():
+                for official_name in self.urls:
+                    print(f'开启{official_name}')
                     # 如果是高优先级队伍这个应该已经完了
                     if official_name is task_name_high_priority:
                         continue
@@ -56,7 +57,11 @@ class GraspByKeywordNews(Grasp):
                         page_info_wrapper = GraspByKeywordNews.baidu_parse(sina_html)
 
                     if page_info_wrapper:
-                        GraspByKeywordNews.add_to_mysql(page_info_wrapper, k)
+                        self.add_to_mysql(page_info_wrapper)
+
+            # 爬取1-page页的数据
+            for cur_page in range(1, page + 1):  # 爬取10页数据
+                Thread(target=crawl, args=()).start()
 
         # 默认参数不知道问什么没有效果，只能这样写
         page = 10 if page is None else page
@@ -70,16 +75,20 @@ class GraspByKeywordNews(Grasp):
 
         Thread(target=remain_task).start()
 
-
     def add_to_mysql(self, page_info_wrapper: List[Tuple[str, str, str, str]]):
         if not page_info_wrapper:
             return
 
-        category = Category.objects.get(name=GraspByKeywordNews.CATEGORY)
+        category = Category.objects.get(name=CategoryConstant.NEWS)
         if category is None:
             return
         category_id = category.id
-        for _, address, title, text in page_info_wrapper:
+
+        for page_info in page_info_wrapper:
+            if len(page_info) != 4:
+                continue
+
+            _, address, title, text = page_info
             website = Website()
             website.title = title
             website.address = address
