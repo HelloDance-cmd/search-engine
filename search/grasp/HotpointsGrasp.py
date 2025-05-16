@@ -6,6 +6,10 @@ from typing import List, Tuple
 from bs4 import BeautifulSoup
 from modules.models import Category, Website
 from .Graps import Grasp
+from .crawl_process.BaiduHotspotStrategy import BaiduHotspotStrategy
+from .crawl_process.CCTVHotspotStrategy import CCTVHotspotStrategy
+from .crawl_process.CrawlStrategyAbstract import CrawlStrategyAbstract
+from .crawl_process.SinaHotspotStrategy import SinaHotspotStrategy
 from .settings import URLS
 
 from modules.Constant import CategoryConstant
@@ -27,11 +31,11 @@ class HotpotsNewGrasp(Grasp):
             text = self.grasp()
 
             if url.find("sina") != -1:
-                HotpotsNewGrasp.sina_grasp(text)
+                self.process(SinaHotspotStrategy(), text)
             elif url.find("cctv") != -1:
-                HotpotsNewGrasp.cctv_grasp(text)
+                self.process(CCTVHotspotStrategy(), text)
             elif url.find("baidu") != -1:
-                HotpotsNewGrasp.baidu_grasp(text)
+                self.process(BaiduHotspotStrategy(), text)
 
     @staticmethod
     def add_to_mysql(url_and_title: List[Tuple[str, str, str]]):
@@ -58,54 +62,6 @@ class HotpotsNewGrasp(Grasp):
 
             website.save()
 
-    @staticmethod
-    def sina_grasp(html: str) -> None:
-        li_list = BeautifulSoup(html, "html.parser") \
-            .find("div", class_="blk_main_li") \
-            .find_all("li")
-
-        url_and_title = []
-
-        for li in li_list:
-            a = li.find("a")
-            url = a.attrs["href"]
-            title = a.string.strip()
-            url_and_title.append(("sina", url, title))
-
-        HotpotsNewGrasp.add_to_mysql(url_and_title)
-
-    @staticmethod
-    def cctv_grasp(html: str) -> None:
-        li_list = BeautifulSoup(html, "html.parser") \
-            .find("ul", id="newslist") \
-            .find_all("li")
-
-        url_and_title = []
-
-        for li in li_list:
-            a = li.find("a")
-            url = a.attrs["href"]
-            title = a.string.strip()
-            url_and_title.append(("sina", url, title))
-
-        HotpotsNewGrasp.add_to_mysql(url_and_title)
-
-    @staticmethod
-    def baidu_grasp(html: str) -> None:
-        elements = BeautifulSoup(html, "html.parser") \
-            .find("div", id="pane-news") \
-            .find_all(["div", "ul"])
-
-        url_and_title = []
-
-        for element in elements:
-            a = element.find("a")
-
-            if a is None:
-                continue
-
-            url = a.attrs["href"]
-            title = a.string.strip()
-            url_and_title.append(("cctv", url, title))
-
-        HotpotsNewGrasp.add_to_mysql(url_and_title)
+    def process(self, processer: CrawlStrategyAbstract, html_text: str):
+        result_set = processer.crawl_process(html_text)
+        HotpotsNewGrasp.add_to_mysql(result_set)

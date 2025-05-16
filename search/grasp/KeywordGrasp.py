@@ -1,12 +1,14 @@
 from threading import Thread
 from typing import List, Tuple
 from urllib.parse import quote
-from bs4 import BeautifulSoup
 
-from modules.models import Category, Website, User
 from modules.Constant import CategoryConstant
-
+from modules.models import Category, Website, User
 from .Graps import Grasp
+from .crawl_process.BaiduPageCrawlStrategy import BaiduPageCrawlStrategy
+from .crawl_process.CCTVPageCrawlStrategy import CCTVPageCrawlStrategy
+from .crawl_process.CrawlStrategyAbstract import CrawlStrategyAbstract
+from .crawl_process.SinaPageCrawlStrategy import SinaPageCrawlStrategy
 
 
 class GraspByKeywordNews(Grasp):
@@ -48,16 +50,16 @@ class GraspByKeywordNews(Grasp):
 
                     self.url = self.urls[official_name](k, cur_page)
 
-                    sina_html = self.grasp()
-                    page_info_wrapper = None
+                    html_str = self.grasp()
+                    page_info_wra = None
 
                     if official_name.find("cctv") != -1:
-                        page_info_wrapper = GraspByKeywordNews.cctv_parse(sina_html)
+                        page_info_wra = self.parser(CCTVPageCrawlStrategy(), html_str)
                     elif official_name.find("baidu") != -1:
-                        page_info_wrapper = GraspByKeywordNews.baidu_parse(sina_html)
+                        page_info_wra = self.parser(BaiduPageCrawlStrategy(), html_str)
 
-                    if page_info_wrapper:
-                        self.add_to_mysql(page_info_wrapper)
+                    if page_info_wra:
+                        self.add_to_mysql(page_info_wra)
 
             # 爬取1-page页的数据
             for cur_page in range(1, page + 1):  # 爬取10页数据
@@ -69,7 +71,8 @@ class GraspByKeywordNews(Grasp):
         # 其余使用多线程完成
         self.url = self.urls[task_name_high_priority](k)
         sina_html = self.grasp()  # 默认通过url抓取
-        page_info_wrapper = GraspByKeywordNews.sina_parse(sina_html)
+
+        page_info_wrapper = self.parser(SinaPageCrawlStrategy(), sina_html)
         if page_info_wrapper:
             self.add_to_mysql(page_info_wrapper)
 
@@ -100,58 +103,5 @@ class GraspByKeywordNews(Grasp):
             user = User.objects.get(pk=self.user_id)
             user.visited_website.add(website)
 
-    @staticmethod
-    def sina_parse(html: str):
-        box_results = BeautifulSoup(html, "html.parser") \
-            .find_all("div", class_="box-result")
-
-        page_info_wrapper = []
-
-        for box_result in box_results:
-            a = box_result.find("a")
-            p = box_result.find("p", class_="content")
-            if a is None:
-                continue
-
-            official_name = "sina"
-            url = a.attrs["href"]
-            title = a.get_text().strip()
-            text = "" if p is None else p.string.strip()
-
-            page_info_wrapper.append((official_name, url, title, text))
-
-        return page_info_wrapper
-
-    @staticmethod
-    def cctv_parse(html: str):
-        #  official_name, url, title, text
-        li_list = BeautifulSoup(html, "html.parser") \
-            .find_all("li", class_="image")
-
-        page_info_wrapper = []
-
-        for li in li_list:
-            official_name = "cctv"
-            title = li.find("h3", class_="tit").get_text().strip()
-            url = li.find("a").attrs["href"]
-            text = li.find("p", class_="bre").get_text().strip()
-
-            page_info_wrapper.append((official_name, url, title, text))
-        return page_info_wrapper
-
-    @staticmethod
-    def baidu_parse(html: str):
-        #  official_name, url, title, text
-        div_boxes = BeautifulSoup(html, "html.parser") \
-            .find_all("div", class_="result-op")
-
-        page_info_wrapper = []
-        for div_box in div_boxes:
-            url = div_box.find("a").attrs["href"]
-            title = div_box.find("h3").get_text().strip()
-            text = div_box.find("div", class_="c-row").strip()
-            official_name = "baidu"
-
-            page_info_wrapper.append((official_name, url, title, text))
-
-        return page_info_wrapper
+    def parser(self, processer: CrawlStrategyAbstract, html_text: str):
+        return processer.crawl_process(html_text)

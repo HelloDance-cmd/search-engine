@@ -88,11 +88,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         "NAME": "search_engine_django",
-        # "HOST": "117.72.37.186",
-        "HOST": "localhost",
+        "HOST": "117.72.37.186",
+        # "HOST": "localhost",
         "USER": "root",
-        # "PASSWORD": "wu272515.",
-        "PASSWORD": "111111",
+        "PASSWORD": "wu272515.",
+        # "PASSWORD": "123123",
         "PORT": "3306"
     }
 }
