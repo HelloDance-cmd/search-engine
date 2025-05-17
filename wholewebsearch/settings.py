@@ -35,10 +35,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',
     'search',
     'user',
     'modules',
     "corsheaders"
+]
+
+CRONJOBS = [
+    ('0 */4 * * *', 'modules.cron_task.task.incremental_update'), # 每4小时执行一次增量更新（每天0点、4点、8点、12点、16点、20点触发）
+    ('0 2 * * 0 ', 'modules.cron_task.task.complete_update') # 每周日凌晨2点执行一次全量更新（确保数据完整性）
 ]
 
 MIDDLEWARE = [

@@ -54,7 +54,8 @@ class GraspByKeywordNews(Grasp):
                     page_info_wra = None
 
                     if official_name.find("cctv") != -1:
-                        page_info_wra = self.parser(CCTVPageCrawlStrategy(), html_str)
+                        # page_info_wra = self.parser(CCTVPageCrawlStrategy(), html_str)
+                        ...
                     elif official_name.find("baidu") != -1:
                         page_info_wra = self.parser(BaiduPageCrawlStrategy(), html_str)
 

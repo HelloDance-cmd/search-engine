@@ -33,7 +33,8 @@ class HotpotsNewGrasp(Grasp):
             if url.find("sina") != -1:
                 self.process(SinaHotspotStrategy(), text)
             elif url.find("cctv") != -1:
-                self.process(CCTVHotspotStrategy(), text)
+                # self.process(CCTVHotspotStrategy(), text)
+                ...
             elif url.find("baidu") != -1:
                 self.process(BaiduHotspotStrategy(), text)
 

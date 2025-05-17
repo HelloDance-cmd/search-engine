@@ -5,7 +5,7 @@ from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
 
 from modules.models import Website, User, Category
 
-from .grasp import getDateInGrasp
+from .grasp import crawl_data
 import threading
 from modules.redis import SearchHistory
 
@@ -38,7 +38,7 @@ def search_view(request: HttpRequest):
         result = userSearchHistory.getUserSearchResult(user.id, words)
         return JsonResponse([eval(item) for item in result][slice_start: slice_end], safe=False)
 
-    getDateInGrasp(words, user.id)
+    crawl_data(words, user.id)
     match_title_results = Website.objects.filter(title__icontains=words).all()
 
     queryset = []
