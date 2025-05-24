@@ -1,9 +1,10 @@
-from django.http import HttpRequest, JsonResponse, HttpResponseBadRequest, HttpResponse
-from modules.GlobalHttpStatusCode import HttpStatusCode
-
 import hashlib
 import json
+import jwt
 
+from django.http import HttpRequest, JsonResponse, HttpResponseBadRequest, HttpResponse
+
+from modules.GlobalHttpStatusCode import HttpStatusCode
 from modules.models import User
 
 
@@ -22,14 +23,15 @@ def user_login_view(request: HttpRequest):
     encrypt_password = hashlib.md5(password.encode('utf-8')).hexdigest()
 
     user = User.objects.filter(name=user_name).first()
-
+    
     if user is None:
         return JsonResponse({
             'message': 'False'
         })
 
     return JsonResponse({
-        'message': str(user.password == encrypt_password)
+        'message': str(user.password == encrypt_password),
+
     })
 
 
